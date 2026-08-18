@@ -863,4 +863,8 @@
     }
 
     window.LiveComposer = Composer;
+
+    // Exposed for the test suite: the queue and the form encoding are where correctness lives, and
+    // both have already been the source of a real bug.
+    window.LiveComposerInternals = { Queue: Queue, toFormData: toFormData, STORAGE_PREFIX: STORAGE_PREFIX };
 })();

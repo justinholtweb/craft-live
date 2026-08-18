@@ -6,7 +6,9 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\base\Field;
 use craft\helpers\Html;
+use GraphQL\Type\Definition\Type;
 use justinholtweb\live\elements\Update;
+use justinholtweb\live\gql\types\LiveFeedGqlType;
 use justinholtweb\live\models\LiveFeed;
 use justinholtweb\live\models\LivePost;
 use justinholtweb\live\Plugin;
@@ -236,6 +238,18 @@ class LiveField extends Field
                 'hasFields' => !empty($type->getFieldLayout()->getCustomFields()),
             ], $this->getAllowedTypes()),
         ];
+    }
+
+    // GraphQL
+    // -------------------------------------------------------------------------
+
+    /**
+     * The field's own GraphQL type, so a headless site can read a feed straight off its entry:
+     * `entry { commentary { seq state updates { body } } }`.
+     */
+    public function getContentGqlType(): Type|array
+    {
+        return LiveFeedGqlType::getType();
     }
 
     // Clean-up

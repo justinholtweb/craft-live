@@ -13,3 +13,6 @@ Initial release.
 - Twig: `entry.<field>`, `craft.live.feed()`, `craft.live.updates()`, `craft.live.posts()`
 - Pinning, key moments, and upcoming/live/paused/ended states
 - Pro: editor presence, scheduled updates, server-sent events, CDN purging
+- Pro: GraphQL — `liveFeed`, `liveUpdates`, `liveUpdate`, `liveUpdateCount`, and the Live field on
+  its owner's type, with a schema component per update type
+- Tests: PHP unit suite plus a JavaScript suite run against the shipped asset files

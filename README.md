@@ -103,6 +103,71 @@ Because `feed.seq` changes on every publish, it is a safe cache key:
 | Scheduled and embargoed updates | | ● |
 | Server-sent events | | ● |
 | CDN purging (Cloudflare, Fastly, webhook) | | ● |
+| GraphQL | | ● |
+
+## GraphQL (Pro)
+
+A headless front end polls `liveFeed` — one indexed row — and fetches updates only when the sequence
+moves. Same shape as the JavaScript client, same reasoning.
+
+```graphql
+{
+  liveFeed(postId: 923) {
+    seq
+    state
+    isLive
+    count
+    pinnedId
+  }
+}
+```
+
+Then, when `seq` has moved:
+
+```graphql
+{
+  liveUpdates(postId: 923, since: 412, orderBy: "seq asc") {
+    seq
+    rev
+    body
+    postedAt
+    typeHandle
+    ... on goal_LiveUpdate {
+      scorer
+    }
+  }
+}
+```
+
+`liveUpdate`, `liveUpdateCount` and the field itself are there too:
+
+```graphql
+{
+  entry(id: 923) {
+    ... on liveMatch_Entry {
+      commentary { seq state updates(limit: 20) { seq body } }
+    }
+  }
+}
+```
+
+Ask for `html` and you get the update rendered through the site's own Twig partial — useful when the
+front end wants the same markup the server would have produced. It costs a render per update, so it
+is only ever produced when asked for.
+
+Each update type is its own schema component (`liveupdatetypes.<uid>:read`), so a token can be given
+the match commentary without being given the newsroom's internal feed. A type outside the schema
+isn't merely filtered out of results — its GraphQL type doesn't exist for that token at all.
+
+## Testing
+
+```sh
+ddev start && ddev composer install
+ddev composer test
+```
+
+A PHP unit suite (no Craft, no database) and a JavaScript suite that runs against the shipped asset
+files. See `tests/README.md`, which also lists the checks that need a real Craft install.
 
 ## Console commands
 

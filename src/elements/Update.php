@@ -15,7 +15,9 @@ use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 use DateTime;
 use justinholtweb\live\db\Table;
+use GraphQL\Type\Definition\Type as GqlType;
 use justinholtweb\live\elements\db\UpdateQuery;
+use justinholtweb\live\gql\interfaces\UpdateInterface;
 use justinholtweb\live\models\UpdateType;
 use justinholtweb\live\Plugin;
 use Twig\Markup;
@@ -387,6 +389,44 @@ class Update extends Element
             'class' => ['live-type-dot', "live-type-dot--$type->color"],
             'title' => $type->name,
         ]) . $label;
+    }
+
+    // GraphQL
+    // -------------------------------------------------------------------------
+
+    /**
+     * A type per update type, so a Goal exposes its scorer field and a plain update does not.
+     */
+    public static function gqlTypeName(UpdateType $updateType): string
+    {
+        return sprintf('%s_LiveUpdate', $updateType->handle);
+    }
+
+    public static function gqlTypeNameByContext(mixed $context): string
+    {
+        /** @var UpdateType $context */
+        return self::gqlTypeName($context);
+    }
+
+    public static function gqlScopesByContext(mixed $context): array
+    {
+        /** @var UpdateType $context */
+        return ["liveupdatetypes.$context->uid"];
+    }
+
+    public static function baseGqlType(): GqlType
+    {
+        return UpdateInterface::getType();
+    }
+
+    /**
+     * Without this the interface resolves an update to the type name “Update” — the short class
+     * name from the base implementation — which is not a type anybody registered, and every query
+     * that reaches an update fails with an internal error.
+     */
+    public function getGqlTypeName(): string
+    {
+        return self::gqlTypeName($this->getType());
     }
 
     // Caching

@@ -52,7 +52,12 @@
         }
     },
     "scripts": {
-        "test": "phpunit"
+        "test": [
+            "@test:php",
+            "@test:js"
+        ],
+        "test:php": "phpunit",
+        "test:js": "node --test \"tests/js/**/*.test.mjs\""
     },
     "config": {
         "allow-plugins": {

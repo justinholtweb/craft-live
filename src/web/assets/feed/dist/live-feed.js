@@ -40,6 +40,40 @@
         });
     }
 
+    /**
+     * Work out what a reader is missing, given a head file and what it already holds.
+     *
+     * Pure, and separated out on purpose: this is the whole correctness of the client. It has to
+     * notice a brand-new update, a revision bump on one it already shows, and a deletion, and it has
+     * to decide when a reader is so far behind that fetching one file at a time is the wrong move.
+     *
+     * @param head  the parsed head.json
+     * @param revs  { [seq]: rev } for everything currently rendered
+     * @returns { wanted: [{seq, rev}], removed: [seq], farBehind: boolean }
+     */
+    function computeWanted(head, revs, maxCatchup) {
+        var wanted = [];
+        var limit = typeof maxCatchup === 'number' ? maxCatchup : MAX_CATCHUP;
+
+        (head && head.updates ? head.updates : []).forEach(function (item) {
+            var known = revs[item.seq];
+
+            if (known === undefined || String(known) !== String(item.rev)) {
+                wanted.push(item);
+            }
+        });
+
+        wanted.sort(function (a, b) {
+            return a.seq - b.seq;
+        });
+
+        var removed = (head && head.removed ? head.removed : []).filter(function (seq) {
+            return revs[seq] !== undefined;
+        });
+
+        return { wanted: wanted, removed: removed, farBehind: wanted.length > limit };
+    }
+
     // Every browser with custom-element support has classes, so there is nothing to gain from an
     // ES5 shim here — and `Reflect.construct` gymnastics are a good way to break in one browser.
     function LiveFeed() {}
@@ -171,32 +205,23 @@
             });
         }
 
-        (head.removed || []).forEach(this.removeSeq.bind(this));
-
-        var wanted = [];
         var self = this;
+        var diff = computeWanted(head, this.revs);
 
-        (head.updates || []).forEach(function (item) {
-            var known = self.revs[item.seq];
-            if (known === undefined || String(known) !== String(item.rev)) {
-                wanted.push(item);
-            }
-        });
+        diff.removed.forEach(this.removeSeq.bind(this));
 
-        if (!wanted.length) {
+        if (!diff.wanted.length) {
             this.seq = Math.max(this.seq, head.seq || 0);
             return;
         }
 
         // Miles behind — a tab left open through a whole match. One request, not eighty.
-        if (wanted.length > MAX_CATCHUP && this.config.fetch) {
+        if (diff.farBehind && this.config.fetch) {
             this.catchUp();
             return;
         }
 
-        wanted.sort(function (a, b) {
-            return a.seq - b.seq;
-        });
+        var wanted = diff.wanted;
 
         wanted.forEach(function (item) {
             self.fetchUpdate(item);
@@ -435,4 +460,7 @@
     });
 
     window.customElements.define('live-feed', LiveFeedElement);
+
+    // Exposed for the test suite, which exercises the diffing against the same code the browser runs.
+    window.LiveFeedInternals = { computeWanted: computeWanted, MAX_CATCHUP: MAX_CATCHUP };
 })();

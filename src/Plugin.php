@@ -10,7 +10,11 @@ use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
 use craft\services\Elements;
 use craft\services\Fields;
+use craft\events\RegisterGqlQueriesEvent;
+use craft\events\RegisterGqlSchemaComponentsEvent;
+use craft\events\RegisterGqlTypesEvent;
 use craft\services\Gc;
+use craft\services\Gql;
 use craft\services\ProjectConfig;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\services\UserPermissions;
@@ -19,6 +23,8 @@ use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 use justinholtweb\live\elements\Update;
 use justinholtweb\live\fields\LiveField;
+use justinholtweb\live\gql\interfaces\UpdateInterface;
+use justinholtweb\live\gql\queries\UpdateQueries;
 use justinholtweb\live\models\Settings;
 use justinholtweb\live\services\Feeds;
 use justinholtweb\live\services\LiveFields;
@@ -100,6 +106,7 @@ class Plugin extends BasePlugin
         $this->registerTwig();
         $this->registerTemplateRoots();
         $this->registerGarbageCollection();
+        $this->registerGraphQl();
     }
 
     /** Whether the Pro feature set is available. Every edition check goes through here. */
@@ -279,6 +286,48 @@ class Plugin extends BasePlugin
                 $variable->set('live', LiveVariable::class);
             },
         );
+    }
+
+    /**
+     * GraphQL (Pro).
+     *
+     * Registered per update type, so a schema can be granted the match commentary without also being
+     * granted the newsroom's internal feed. Nothing is registered at all on Lite, which means the
+     * schema changes shape on an edition switch — deliberate, and the alternative is advertising
+     * queries that answer with an error.
+     */
+    private function registerGraphQl(): void
+    {
+        if (!$this->isPro()) {
+            return;
+        }
+
+        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_TYPES, function(RegisterGqlTypesEvent $event) {
+            $event->types[] = UpdateInterface::class;
+        });
+
+        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_QUERIES, function(RegisterGqlQueriesEvent $event) {
+            $event->queries = array_merge($event->queries, UpdateQueries::getQueries());
+        });
+
+        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_SCHEMA_COMPONENTS, function(RegisterGqlSchemaComponentsEvent $event) {
+            $types = $this->updateTypes->getAllTypes();
+
+            if (!$types) {
+                return;
+            }
+
+            $queries = [];
+
+            foreach ($types as $type) {
+                $name = Craft::t('site', $type->name);
+                $queries["liveupdatetypes.$type->uid:read"] = [
+                    'label' => Craft::t('live', 'Query for “{name}” live updates', ['name' => $name]),
+                ];
+            }
+
+            $event->queries[Craft::t('live', 'Live')] = $queries;
+        });
     }
 
     /**

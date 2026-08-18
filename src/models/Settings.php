@@ -128,7 +128,8 @@ class Settings extends Model
             [['purgeDriver'], 'in', 'range' => [self::PURGE_NONE, self::PURGE_CLOUDFLARE, self::PURGE_FASTLY, self::PURGE_WEBHOOK]],
             [['purgeZoneId', 'purgeToken', 'purgeUrl'], 'string'],
             [['purgeThrottle'], 'integer', 'min' => 5, 'max' => 3600],
-            [['snapshotPath', 'snapshotUrl'], 'validateNotEmptyWhenSnapshotting'],
+            // skipOnEmpty off, or Yii never runs this: an empty value is exactly what it checks for.
+            [['snapshotPath', 'snapshotUrl'], 'validateNotEmptyWhenSnapshotting', 'skipOnEmpty' => false],
         ];
     }
 
