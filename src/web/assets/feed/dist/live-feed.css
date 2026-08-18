@@ -1,0 +1,104 @@
+/* Live — a plain, unopinionated starting point. Every class is yours to override or ignore. */
+
+.live-feed {
+    display: block;
+}
+
+.live-feed__head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.live-feed__state {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.live-feed__state--live::before {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: currentColor;
+    animation: live-feed-pulse 2s infinite;
+}
+
+@keyframes live-feed-pulse {
+    50% {
+        opacity: 0.25;
+    }
+}
+
+.live-feed__new {
+    position: sticky;
+    top: 1rem;
+    z-index: 2;
+    display: block;
+    margin: 0 auto 1rem;
+    border: 0;
+    border-radius: 999px;
+    padding: 0.5rem 1rem;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.live-feed__updates {
+    display: grid;
+    gap: 1rem;
+}
+
+.live-update {
+    padding-inline-start: 1rem;
+    border-inline-start: 3px solid currentColor;
+}
+
+.live-update__head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    font-size: 0.8125rem;
+    opacity: 0.75;
+}
+
+.live-update__time {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+}
+
+.live-update__title {
+    margin: 0.25rem 0 0.5rem;
+}
+
+.live-update__body > :first-child {
+    margin-top: 0;
+}
+
+.live-update__body > :last-child {
+    margin-bottom: 0;
+}
+
+.live-update--new {
+    animation: live-update-in 0.35s ease-out;
+}
+
+@keyframes live-update-in {
+    from {
+        opacity: 0;
+        transform: translateY(-0.5rem);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .live-update--new,
+    .live-feed__state--live::before {
+        animation: none;
+    }
+}

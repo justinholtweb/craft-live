@@ -1,0 +1,64 @@
+{# The default rendering of one update.
+
+   This is what gets written into the snapshot at publish time, so it is also exactly what arrives
+   in the browser afterwards. To take it over, copy it to `live/_update.twig` in your own templates
+   directory — Live looks there first — or point the “Update template” setting somewhere else.
+
+   Two attributes matter to the runtime and should survive any rewrite:
+   `data-seq` and `data-rev`. They are how the client knows what it already has. #}
+
+{% set type = update.type %}
+
+<article class="live-update
+                {{- update.pinned ? ' live-update--pinned' }}
+                {{- update.highlight ? ' live-update--key' }}
+                live-update--{{ type.handle }}"
+         id="{{ (standalone ?? false) ? 'pinned-' }}update-{{ update.id }}"
+         data-seq="{{ update.seq }}"
+         data-rev="{{ update.meta.rev ?? 0 }}">
+
+    <header class="live-update__head">
+        <time class="live-update__time" datetime="{{ update.postedAt|atom }}">
+            {{ update.postedAt|date(craft.app.plugins.getPlugin('live').settings.timestampFormat) }}
+        </time>
+
+        <span class="live-update__type{{ type.color ? ' live-update__type--' ~ type.color }}">{{ type.name }}</span>
+
+        {% if update.pinned %}<span class="live-update__flag">{{ 'Pinned'|t('live') }}</span>{% endif %}
+    </header>
+
+    {% if update.title %}
+        <h3 class="live-update__title">{{ update.title }}</h3>
+    {% endif %}
+
+    {% if update.body %}
+        <div class="live-update__body">{{ update.bodyHtml }}</div>
+    {% endif %}
+
+    {% for layoutField in (update.fieldLayout ? update.fieldLayout.customFields : []) %}
+        {% set value = update.getFieldValue(layoutField.handle) %}
+        {% if value is not empty %}
+            <div class="live-update__field live-update__field--{{ layoutField.handle }}">
+                {% if value.elementType is defined %}
+                    {% for element in value.all() %}
+                        {% if element.kind is defined and element.kind == 'image' %}
+                            <img src="{{ element.url }}"
+                                 alt="{{ element.alt ?? '' }}"
+                                 width="{{ element.width }}"
+                                 height="{{ element.height }}"
+                                 loading="lazy">
+                        {% else %}
+                            <a href="{{ element.url ?? '#' }}">{{ element.title ?? element.uiLabel }}</a>
+                        {% endif %}
+                    {% endfor %}
+                {% elseif value is not iterable %}
+                    {{ value }}
+                {% endif %}
+            </div>
+        {% endif %}
+    {% endfor %}
+
+    {% if update.author %}
+        <footer class="live-update__byline">{{ update.author.friendlyName }}</footer>
+    {% endif %}
+</article>

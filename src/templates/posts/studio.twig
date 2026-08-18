@@ -1,0 +1,40 @@
+{% extends '_layouts/cp.twig' %}
+
+{% set title = owner.title ?? owner.uiLabel %}
+{% set selectedSubnavItem = 'posts' %}
+
+{% set crumbs = [
+    { label: 'Live'|t('live'), url: url('live/posts') },
+] %}
+
+{% block actionButton %}
+    <div class="flex">
+        {% if fields|length > 1 %}
+            <div class="btngroup">
+                {% for candidate in fields %}
+                    <a class="btn{{ candidate.id == field.id ? ' active' }}"
+                       href="{{ url('live/post/' ~ owner.id, { fieldId: candidate.id, site: site.handle }) }}">{{ candidate.name }}</a>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if owner.cpEditUrl %}
+            <a class="btn" href="{{ owner.cpEditUrl }}">{{ 'Edit entry'|t('live') }}</a>
+        {% endif %}
+
+        {% if owner.url %}
+            <a class="btn" href="{{ owner.url }}" target="_blank" rel="noopener">{{ 'View'|t('live') }}</a>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block content %}
+    {% include 'live/_composer.twig' with {
+        field: field,
+        element: owner,
+        post: post,
+        types: types,
+        config: config,
+        updates: updates,
+    } only %}
+{% endblock %}

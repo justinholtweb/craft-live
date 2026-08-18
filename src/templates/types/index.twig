@@ -1,0 +1,49 @@
+{% extends '_layouts/cp.twig' %}
+
+{% set title = 'Update Types'|t('live') %}
+{% set selectedSubnavItem = 'types' %}
+
+{% block actionButton %}
+    <a href="{{ url('live/types/new') }}" class="btn submit add icon">{{ 'New update type'|t('live') }}</a>
+{% endblock %}
+
+{% block content %}
+    {% if types is empty %}
+        <p class="zilch">{{ 'No update types yet.'|t('live') }}</p>
+    {% else %}
+        <table class="data fullwidth collapsible">
+            <thead>
+                <tr>
+                    <th>{{ 'Name'|t('live') }}</th>
+                    <th>{{ 'Handle'|t('live') }}</th>
+                    <th>{{ 'In composer'|t('live') }}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for type in types %}
+                    <tr data-id="{{ type.id }}" data-name="{{ type.name }}">
+                        <td>
+                            {% if type.color %}<span class="live-type-dot live-type-dot--{{ type.color }}"></span>{% endif %}
+                            <a href="{{ url('live/types/' ~ type.id) }}">{{ type.name }}</a>
+                        </td>
+                        <td><code>{{ type.handle }}</code></td>
+                        <td>{{ type.showsInComposer ? 'Yes'|t('live') : 'No'|t('live') }}</td>
+                        <td class="thin">
+                            <a class="delete icon" title="{{ 'Delete'|t('live') }}" role="button"></a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}
+
+{% js %}
+    new Craft.AdminTable({
+        tableSelector: '.data',
+        deleteAction: 'live/update-types/delete',
+        reorderAction: 'live/update-types/reorder',
+        confirmDeleteMessage: '{{ 'Delete “{name}” and every update posted with it?'|t('live')|e('js') }}',
+    });
+{% endjs %}

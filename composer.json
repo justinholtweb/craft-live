@@ -1,0 +1,73 @@
+{
+    "name": "justinholtweb/craft-live",
+    "description": "Live blogging for Craft \u2014 publish updates in a keystroke, and put them on the site without touching the page cache.",
+    "type": "craft-plugin",
+    "version": "5.0.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "live",
+        "live blog",
+        "liveblog",
+        "live reporting",
+        "minute by minute",
+        "realtime",
+        "sse"
+    ],
+    "license": "proprietary",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "authors": [
+        {
+            "name": "Justin Holt",
+            "homepage": "https://justinholt.com"
+        }
+    ],
+    "support": {
+        "docs": "https://craft-live.com/docs",
+        "source": "https://github.com/justinholtweb/craft-live",
+        "issues": "https://github.com/justinholtweb/craft-live/issues"
+    },
+    "require": {
+        "php": "^8.2",
+        "ext-json": "*",
+        "craftcms/cms": "^5.3.0",
+        "ezyang/htmlpurifier": "^4.17"
+    },
+    "require-dev": {
+        "craftcms/ecs": "dev-main",
+        "craftcms/phpstan": "dev-main",
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "justinholtweb\\live\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "justinholtweb\\live\\tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true,
+            "craftcms/plugin-installer": true,
+            "craftcms/generator": true
+        }
+    },
+    "extra": {
+        "name": "Live",
+        "handle": "live",
+        "developer": "Justin Holt",
+        "developerUrl": "https://justinholt.com",
+        "documentationUrl": "https://craft-live.com/docs",
+        "changelogUrl": "https://raw.githubusercontent.com/justinholtweb/craft-live/main/CHANGELOG.md",
+        "class": "justinholtweb\\live\\Plugin"
+    }
+}

@@ -1,0 +1,45 @@
+{# A whole feed, ready to include:
+
+     {% include 'live/_feed.twig' with { feed: entry.commentary } %}
+
+   Copy it into your own templates and change everything — it is here to be a starting point and to
+   show which bits the runtime cares about. Those are: the `<live-feed>` element with its config
+   attribute, and a container marked `data-live-updates` holding the rendered updates.
+
+   The pinned update appears twice on purpose — once at the top, once in its place in the timeline —
+   and both carry the same `data-seq`, so an edit to it updates both copies. Only the timeline copy
+   keeps the canonical `id`. #}
+
+{% do craft.app.view.registerAssetBundle('justinholtweb\\live\\web\\assets\\feed\\FeedAsset') %}
+
+{% set pinned = feed.pinned %}
+
+<live-feed class="live-feed"
+           data-state="{{ feed.state }}"
+           data-live-config="{{ feed.clientConfig|json_encode }}">
+
+    <header class="live-feed__head">
+        <span class="live-feed__state live-feed__state--{{ feed.state }}">{{ feed.stateLabel }}</span>
+        <span class="live-feed__count"><span data-live-count>{{ feed.count }}</span> {{ 'updates'|t('live') }}</span>
+    </header>
+
+    {% if pinned %}
+        <div class="live-feed__pinned">
+            {% include 'live/_update.twig' with { update: pinned, standalone: true } only %}
+        </div>
+    {% endif %}
+
+    <button type="button" class="live-feed__new" data-live-new data-label="{{ '{n} new updates'|t('live', { n: '{n}' }) }}" hidden></button>
+
+    <div class="live-feed__updates" data-live-updates>
+        {% for update in feed.updates.limit(50).all() %}
+            {% include 'live/_update.twig' with { update: update } only %}
+        {% else %}
+            <p class="live-feed__empty">{{ 'Coverage starts shortly.'|t('live') }}</p>
+        {% endfor %}
+    </div>
+
+    <noscript>
+        <p class="live-feed__noscript">{{ 'Refresh the page for the latest updates.'|t('live') }}</p>
+    </noscript>
+</live-feed>

@@ -1,0 +1,59 @@
+{% extends '_layouts/cp.twig' %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set title = 'Live'|t('live') %}
+{% set selectedSubnavItem = 'posts' %}
+
+{% block content %}
+    {% if posts is empty %}
+        <div class="zilch">
+            <p>{{ 'Nothing has gone live yet.'|t('live') }}</p>
+            <p class="light">{{ 'Add a Live field to an entry type, then open one of those entries to start posting.'|t('live') }}</p>
+        </div>
+    {% else %}
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th>{{ 'Post'|t('live') }}</th>
+                    <th>{{ 'State'|t('live') }}</th>
+                    <th>{{ 'Updates'|t('live') }}</th>
+                    <th>{{ 'Last update'|t('live') }}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for post in posts %}
+                    {% set owner = post.owner %}
+                    <tr>
+                        <td>
+                            {% if owner %}
+                                <a href="{{ url('live/post/' ~ post.postId, { fieldId: post.fieldId, site: site.handle }) }}">
+                                    {{ owner.title ?? owner.uiLabel }}
+                                </a>
+                            {% else %}
+                                <span class="light">{{ 'Deleted entry'|t('live') }} #{{ post.postId }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="status {{ post.state == 'live' ? 'green' : (post.state == 'paused' ? 'orange' : '') }}"></span>
+                            {{ post.stateLabel }}
+                        </td>
+                        <td>{{ post.updateCount }}</td>
+                        <td>
+                            {% if post.lastPublishedAt %}
+                                {{ post.lastPublishedAt|datetime('short') }}
+                            {% else %}
+                                <span class="light">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="thin">
+                            {% if owner and owner.url %}
+                                <a href="{{ owner.url }}" class="btn small" target="_blank" rel="noopener">{{ 'View'|t('live') }}</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

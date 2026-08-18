@@ -1,0 +1,253 @@
+{% import '_includes/forms.twig' as forms %}
+
+{% set isPro = plugin.isPro() %}
+
+<h2>{{ 'Delivery'|t('live') }}</h2>
+
+{{ forms.lightswitchField({
+    label: 'Write static snapshots'|t('live'),
+    instructions: 'Each publish writes JSON into the web root, so readers poll a static file instead of waking Craft. Turn this off only if the web root isn’t writable.'|t('live'),
+    id: 'snapshotsEnabled',
+    name: 'settings[snapshotsEnabled]',
+    on: settings.snapshotsEnabled,
+    toggle: 'snapshot-settings',
+}) }}
+
+<div id="snapshot-settings" class="{{ not settings.snapshotsEnabled ? 'hidden' }}">
+    {{ forms.autosuggestField({
+        label: 'Snapshot path'|t('live'),
+        instructions: 'Where those files are written. Must be inside the web root.'|t('live'),
+        id: 'snapshotPath',
+        name: 'settings[snapshotPath]',
+        value: settings.snapshotPath,
+        suggestEnvVars: true,
+        suggestAliases: true,
+    }) }}
+
+    {{ forms.autosuggestField({
+        label: 'Snapshot URL'|t('live'),
+        instructions: 'The URL those files are served from.'|t('live'),
+        id: 'snapshotUrl',
+        name: 'settings[snapshotUrl]',
+        value: settings.snapshotUrl,
+        suggestEnvVars: true,
+        suggestAliases: true,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: 'Pre-render updates'|t('live'),
+        instructions: 'Render each update’s HTML at publish time, using the site’s own template, so appended updates match the page exactly.'|t('live'),
+        id: 'prerenderHtml',
+        name: 'settings[prerenderHtml]',
+        on: settings.prerenderHtml,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Update template'|t('live'),
+        instructions: 'Site template used to render one update. Defaults to `live/_update`.'|t('live'),
+        id: 'updateTemplate',
+        name: 'settings[updateTemplate]',
+        value: settings.updateTemplate,
+        placeholder: 'live/_update',
+    }) }}
+</div>
+
+{{ forms.textField({
+    label: 'Poll interval'|t('live'),
+    instructions: 'Seconds between reader checks. Also how long a CDN may hold the head file.'|t('live'),
+    id: 'pollInterval',
+    name: 'settings[pollInterval]',
+    value: settings.pollInterval,
+    type: 'number',
+    size: 5,
+    unit: 'seconds'|t('live'),
+}) }}
+
+{{ forms.textField({
+    label: 'Updates in the head file'|t('live'),
+    instructions: 'How many recent updates the head file lists. Larger means readers can catch up further without a reload.'|t('live'),
+    id: 'headWindow',
+    name: 'settings[headWindow]',
+    value: settings.headWindow,
+    type: 'number',
+    size: 5,
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Invalidate the entry’s caches'|t('live'),
+    instructions: 'Off by default — the point of Live is that the page stays cached while updates arrive around it. Turn it on if your feed is rendered inside a cache tag with no JavaScript.'|t('live'),
+    id: 'invalidateOwnerCaches',
+    name: 'settings[invalidateOwnerCaches]',
+    on: settings.invalidateOwnerCaches,
+}) }}
+
+<hr>
+
+<h2>{{ 'Editing'|t('live') }}</h2>
+
+{{ forms.textField({
+    label: 'Composer refresh'|t('live'),
+    instructions: 'Seconds between control-panel refreshes, so editors see each other’s updates.'|t('live'),
+    id: 'composerPollInterval',
+    name: 'settings[composerPollInterval]',
+    value: settings.composerPollInterval,
+    type: 'number',
+    size: 5,
+    unit: 'seconds'|t('live'),
+}) }}
+
+{{ forms.textField({
+    label: 'Time format'|t('live'),
+    instructions: 'PHP date format for timestamps in the shipped templates.'|t('live'),
+    id: 'timestampFormat',
+    name: 'settings[timestampFormat]',
+    value: settings.timestampFormat,
+    size: 10,
+}) }}
+
+{{ forms.textareaField({
+    label: 'Allowed HTML'|t('live'),
+    instructions: 'HTMLPurifier `HTML.Allowed` string for update bodies. Leave empty for the default vocabulary.'|t('live'),
+    id: 'bodyAllowedHtml',
+    name: 'settings[bodyAllowedHtml]',
+    value: settings.bodyAllowedHtml,
+    rows: 2,
+}) }}
+
+{% if isPro %}
+    {{ forms.lightswitchField({
+        label: 'Show other editors'|t('live'),
+        id: 'presenceEnabled',
+        name: 'settings[presenceEnabled]',
+        on: settings.presenceEnabled,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Presence timeout'|t('live'),
+        instructions: 'Seconds without a heartbeat before an editor is treated as gone.'|t('live'),
+        id: 'presenceTtl',
+        name: 'settings[presenceTtl]',
+        value: settings.presenceTtl,
+        type: 'number',
+        size: 5,
+        unit: 'seconds'|t('live'),
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: 'Allow scheduled updates'|t('live'),
+        id: 'allowScheduled',
+        name: 'settings[allowScheduled]',
+        on: settings.allowScheduled,
+    }) }}
+
+    <hr>
+
+    <h2>{{ 'Streaming'|t('live') }}</h2>
+
+    <p class="light">{{ 'Server-sent events hold a PHP process open for every connected reader. On FPM the ceiling is pm.max_children — reach it and the whole site stops answering, not just the live blog. Polling static snapshots has no such ceiling, which is why it is the default.'|t('live') }}</p>
+
+    {{ forms.lightswitchField({
+        label: 'Enable streaming'|t('live'),
+        id: 'sseEnabled',
+        name: 'settings[sseEnabled]',
+        on: settings.sseEnabled,
+        toggle: 'sse-settings',
+    }) }}
+
+    <div id="sse-settings" class="{{ not settings.sseEnabled ? 'hidden' }}">
+        {{ forms.textField({
+            label: 'Maximum concurrent readers'|t('live'),
+            instructions: 'Streams beyond this are turned away and fall back to polling.'|t('live'),
+            id: 'sseMaxClients',
+            name: 'settings[sseMaxClients]',
+            value: settings.sseMaxClients,
+            type: 'number',
+            size: 6,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Connection lifetime'|t('live'),
+            instructions: 'Seconds before a stream asks the client to reconnect.'|t('live'),
+            id: 'sseMaxDuration',
+            name: 'settings[sseMaxDuration]',
+            value: settings.sseMaxDuration,
+            type: 'number',
+            size: 5,
+            unit: 'seconds'|t('live'),
+        }) }}
+
+        {{ forms.textField({
+            label: 'Stream check interval'|t('live'),
+            id: 'ssePollInterval',
+            name: 'settings[ssePollInterval]',
+            value: settings.ssePollInterval,
+            type: 'number',
+            size: 6,
+            unit: 'ms',
+        }) }}
+    </div>
+
+    <hr>
+
+    <h2>{{ 'CDN purging'|t('live') }}</h2>
+
+    {{ forms.selectField({
+        label: 'Purge'|t('live'),
+        instructions: 'Most sites need nothing here: updates arrive over the top of the cached page. Purging matters for readers who never run the JavaScript.'|t('live'),
+        id: 'purgeDriver',
+        name: 'settings[purgeDriver]',
+        options: [
+            { label: 'Nothing'|t('live'), value: 'none' },
+            { label: 'Cloudflare'|t('live'), value: 'cloudflare' },
+            { label: 'Fastly'|t('live'), value: 'fastly' },
+            { label: 'Webhook'|t('live'), value: 'webhook' },
+        ],
+        value: settings.purgeDriver,
+        toggle: true,
+        targetPrefix: 'purge-',
+    }) }}
+
+    <div id="purge-cloudflare" class="{{ settings.purgeDriver != 'cloudflare' ? 'hidden' }}">
+        {{ forms.textField({
+            label: 'Zone ID'|t('live'),
+            id: 'purgeZoneId',
+            name: 'settings[purgeZoneId]',
+            value: settings.purgeZoneId,
+        }) }}
+    </div>
+
+    <div id="purge-webhook" class="{{ settings.purgeDriver != 'webhook' ? 'hidden' }}">
+        {{ forms.autosuggestField({
+            label: 'Webhook URL'|t('live'),
+            id: 'purgeUrl',
+            name: 'settings[purgeUrl]',
+            value: settings.purgeUrl,
+            suggestEnvVars: true,
+        }) }}
+    </div>
+
+    <div id="purge-cloudflare-token" class="{{ settings.purgeDriver not in ['cloudflare', 'fastly'] ? 'hidden' }}">
+        {{ forms.autosuggestField({
+            label: 'API token'|t('live'),
+            instructions: 'Store this in an environment variable.'|t('live'),
+            id: 'purgeToken',
+            name: 'settings[purgeToken]',
+            value: settings.purgeToken,
+            suggestEnvVars: true,
+        }) }}
+    </div>
+
+    {{ forms.textField({
+        label: 'Purge throttle'|t('live'),
+        instructions: 'Seconds between purges of the same post, however many updates land in between.'|t('live'),
+        id: 'purgeThrottle',
+        name: 'settings[purgeThrottle]',
+        value: settings.purgeThrottle,
+        type: 'number',
+        size: 5,
+        unit: 'seconds'|t('live'),
+    }) }}
+{% else %}
+    <hr>
+    <p class="light">{{ 'Presence, scheduled updates, streaming and CDN purging are part of Live Pro.'|t('live') }}</p>
+{% endif %}

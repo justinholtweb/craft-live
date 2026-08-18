@@ -1,0 +1,49 @@
+{% import '_includes/forms.twig' as forms %}
+
+{{ forms.checkboxSelectField({
+    label: 'Update types'|t('live'),
+    instructions: 'Which kinds of update this feed accepts. Leave all unchecked to allow every type.'|t('live'),
+    id: 'updateTypeUids',
+    name: 'updateTypeUids',
+    options: types|map(t => { label: t.name, value: t.uid }),
+    values: field.updateTypeUids,
+    showAllOption: false,
+}) }}
+
+{{ forms.selectField({
+    label: 'Order'|t('live'),
+    instructions: 'Newest first reads like a news feed; oldest first reads like a commentary.'|t('live'),
+    id: 'order',
+    name: 'order',
+    options: [
+        { label: 'Newest first'|t('live'), value: 'newest' },
+        { label: 'Oldest first'|t('live'), value: 'oldest' },
+    ],
+    value: field.order,
+}) }}
+
+{{ forms.textField({
+    label: 'Updates per page'|t('live'),
+    instructions: 'How many updates the composer loads at a time.'|t('live'),
+    id: 'pageSize',
+    name: 'pageSize',
+    value: field.pageSize,
+    size: 5,
+    type: 'number',
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Show other editors'|t('live'),
+    instructions: 'Show who else has this post open, so two people don’t cover the same moment twice.'|t('live'),
+    id: 'showPresence',
+    name: 'showPresence',
+    on: field.showPresence,
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Allow scheduled updates'|t('live'),
+    instructions: 'Let editors write an update now and have it appear at a set time.'|t('live'),
+    id: 'allowScheduled',
+    name: 'allowScheduled',
+    on: field.allowScheduled,
+}) }}

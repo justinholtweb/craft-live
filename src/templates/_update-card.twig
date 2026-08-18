@@ -1,0 +1,41 @@
+{# One update, as the control panel shows it. Also returned by the publish endpoint, so the card an
+   editor sees a moment after pressing ⌘↵ is the same markup a reload would give them. #}
+
+{% set type = update.type %}
+{% set status = update.status %}
+
+<div class="live-card
+            {{- update.pinned ? ' live-card--pinned' }}
+            {{- update.highlight ? ' live-card--highlight' }}
+            {{- status != 'published' ? ' live-card--' ~ status }}"
+     data-update-id="{{ update.id }}"
+     data-type-id="{{ update.typeId }}"
+     data-seq="{{ update.seq }}"
+     data-pinned="{{ update.pinned ? '1' : '0' }}">
+
+    <div class="live-card__meta">
+        {% if type.color %}<span class="live-type-dot live-type-dot--{{ type.color }}"></span>{% endif %}
+        <span class="live-card__type">{{ type.name }}</span>
+        <span class="live-card__time">{{ update.postedAt|datetime('short') }}</span>
+        {% if update.author %}<span class="live-card__author">{{ update.author.friendlyName }}</span>{% endif %}
+        {% if status == 'scheduled' %}<span class="status orange"></span>{{ 'Scheduled'|t('live') }}{% endif %}
+        {% if status == 'disabled' %}<span class="status"></span>{{ 'Held'|t('live') }}{% endif %}
+        {% if update.pinned %}<span class="live-card__flag">{{ 'Pinned'|t('live') }}</span>{% endif %}
+    </div>
+
+    {% if update.title %}
+        <h3 class="live-card__title">{{ update.title }}</h3>
+    {% endif %}
+
+    {% if update.body %}
+        <div class="live-card__body">{{ update.bodyHtml }}</div>
+    {% endif %}
+
+    <div class="live-card__actions">
+        <button type="button" class="btn small" data-live-action="edit">{{ 'Edit'|t('live') }}</button>
+        <button type="button" class="btn small" data-live-action="pin">
+            {{- update.pinned ? 'Unpin'|t('live') : 'Pin'|t('live') -}}
+        </button>
+        <button type="button" class="btn small" data-live-action="delete">{{ 'Delete'|t('live') }}</button>
+    </div>
+</div>

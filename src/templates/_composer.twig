@@ -1,0 +1,100 @@
+{# The composer. Rendered both inside the Live field and on its own screen.
+
+   Deliberately not a <form>: this markup can be inside Craft's entry-edit form, and a nested form
+   is invalid HTML — the parser drops the inner tag and keeps its children, which would leave a
+   second action input sitting in the page form. Every control here is type="button" and everything
+   posts over Ajax. #}
+
+{% import '_includes/forms.twig' as forms %}
+
+{% set canControl = config.canControl ?? false %}
+
+<div class="live-composer"
+     data-live-composer
+     data-state="{{ post.state }}"
+     data-live-config="{{ config|json_encode }}">
+
+    <div class="live-composer__bar">
+        <div class="live-composer__types">
+            {% for type in types %}
+                <button type="button"
+                        class="btn{{ loop.first ? ' active' }}"
+                        data-live-type="{{ type.id }}"
+                        title="{{ type.description ?? type.name }}">
+                    {% if type.color %}<span class="live-type-dot live-type-dot--{{ type.color }}"></span>{% endif %}
+                    {{ type.name }}
+                </button>
+            {% endfor %}
+        </div>
+
+        <div class="live-composer__state">
+            <span class="live-composer__dot"></span>
+            <span class="live-composer__label" data-live-state-label>{{ post.stateLabel }}</span>
+
+            {% if canControl %}
+                <div class="btngroup">
+                    {% for state, label in {
+                        'live': 'Start'|t('live'),
+                        'paused': 'Pause'|t('live'),
+                        'ended': 'End'|t('live'),
+                    } %}
+                        <button type="button"
+                                class="btn small{{ post.state == state ? ' active' }}"
+                                data-live-state="{{ state }}">{{ label }}</button>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="live-composer__presence" data-live-presence hidden></div>
+
+    <div class="live-composer__form" data-live-form>
+        <div data-live-title-wrap hidden>
+            {{ forms.text({
+                placeholder: 'Headline'|t('live'),
+                class: 'live-composer__title',
+                inputAttributes: { 'data-live-title': true },
+            }) }}
+        </div>
+
+        <textarea data-live-body
+                  rows="3"
+                  placeholder="{{ 'What just happened?'|t('live') }}"></textarea>
+
+        <div class="live-composer__fields" data-live-fields></div>
+
+        <div class="live-composer__actions">
+            <button type="button" class="btn submit" data-live-publish>{{ 'Publish'|t('live') }}</button>
+            <button type="button" class="btn" data-live-cancel hidden>{{ 'Cancel'|t('live') }}</button>
+
+            <label class="checkbox-label">
+                <input type="checkbox" class="checkbox" data-live-highlight>
+                <span>{{ 'Key moment'|t('live') }}</span>
+            </label>
+
+            <label class="checkbox-label">
+                <input type="checkbox" class="checkbox" data-live-pinned>
+                <span>{{ 'Pin'|t('live') }}</span>
+            </label>
+
+            {% if config.allowScheduled ?? false %}
+                <input type="datetime-local" class="text" data-live-postedat
+                       title="{{ 'Post at'|t('live') }}">
+            {% endif %}
+
+            <span class="live-composer__hint">
+                {{ 'Markdown, then {key} to publish'|t('live', { key: '⌘↵' }) }}
+                · <span data-live-count>{{ post.updateCount }}</span> {{ 'published'|t('live') }}
+            </span>
+        </div>
+    </div>
+
+    <div class="live-composer__list" data-live-list>
+        {% for update in updates %}
+            {% include 'live/_update-card.twig' with { update: update, field: field } only %}
+        {% else %}
+            <p class="zilch">{{ 'Nothing published yet.'|t('live') }}</p>
+        {% endfor %}
+    </div>
+</div>

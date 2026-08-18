@@ -1,0 +1,101 @@
+{% extends '_layouts/cp.twig' %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set selectedSubnavItem = 'types' %}
+{% set fullPageForm = true %}
+
+{% set crumbs = [
+    { label: 'Live'|t('live'), url: url('live/posts') },
+    { label: 'Update Types'|t('live'), url: url('live/types') },
+] %}
+
+{% set tabs = {
+    settings: { label: 'Settings'|t('live'), url: '#settings' },
+    layout: { label: 'Field Layout'|t('live'), url: '#layout' },
+} %}
+
+{% block content %}
+    {{ actionInput('live/update-types/save') }}
+    {{ redirectInput('live/types') }}
+    {% if type.id %}{{ hiddenInput('typeId', type.id) }}{% endif %}
+
+    <div id="settings">
+        {{ forms.textField({
+            first: true,
+            label: 'Name'|t('live'),
+            id: 'name',
+            name: 'name',
+            value: type.name,
+            errors: type.getErrors('name'),
+            autofocus: true,
+            required: true,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Handle'|t('live'),
+            id: 'handle',
+            name: 'handle',
+            class: 'code',
+            value: type.handle,
+            errors: type.getErrors('handle'),
+            required: true,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Description'|t('live'),
+            instructions: 'Shown to editors as the button’s tooltip.'|t('live'),
+            id: 'description',
+            name: 'description',
+            value: type.description,
+        }) }}
+
+        {{ forms.colorSelectField({
+            label: 'Colour'|t('live'),
+            id: 'color',
+            name: 'color',
+            value: type.color,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Show in the composer'|t('live'),
+            instructions: 'Off for types only ever created by code or an import.'|t('live'),
+            id: 'showsInComposer',
+            name: 'showsInComposer',
+            on: type.showsInComposer,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Headline field'|t('live'),
+            instructions: 'Give updates of this type their own headline. Most live updates don’t need one.'|t('live'),
+            id: 'hasTitleField',
+            name: 'hasTitleField',
+            on: type.hasTitleField,
+            toggle: 'title-format',
+            reverseToggle: true,
+        }) }}
+
+        <div id="title-format" class="{{ type.hasTitleField ? 'hidden' }}">
+            {{ forms.textField({
+                label: 'Title format'|t('live'),
+                instructions: 'Object template used to name updates of this type in the control panel.'|t('live'),
+                id: 'titleFormat',
+                name: 'titleFormat',
+                class: 'code',
+                value: type.titleFormat,
+                placeholder: '{type.name} {seq}',
+            }) }}
+        </div>
+    </div>
+
+    <div id="layout" class="hidden">
+        {{ forms.fieldLayoutDesignerField({
+            fieldLayout: type.getFieldLayout(),
+        }) }}
+    </div>
+{% endblock %}
+
+{% if not type.handle %}
+    {% js %}
+        new Craft.HandleGenerator('#name', '#handle');
+    {% endjs %}
+{% endif %}
